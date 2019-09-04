@@ -44,7 +44,8 @@ export default (state = data, action = {}) => {
       state.posts.count = action.result;
       break;
     case `${namespace}/posts/LOAD_ERROR`:
-      state.posts.error = new Error();
+      state.posts.error =  { ...new Error(), ...action.result };
+      state.content = state.posts.content = null;
       break;
     case `${namespace}/posts/LIST_ERROR`:
       state.posts.error = new Error();
@@ -62,7 +63,8 @@ export default (state = data, action = {}) => {
       state.collections.count = action.result;
       break;
     case `${namespace}/collections/LOAD_ERROR`:
-      state.collections.error = new Error();
+      state.collections.error = { ...new Error(), ...action.result };
+      state.content = state.collections.content = null;
       break;
     case `${namespace}/collections/LIST_ERROR`:
       state.collections.error = new Error();
