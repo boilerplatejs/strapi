@@ -1,0 +1,19 @@
+{
+  "name": "@boilerplatejs/strapi",
+  "version": "1.0.0",
+  "scripts": {
+    "lint": "boilerplate lint --bundle $(pwd)",
+    "mount": "boilerplate mount --bundle $(pwd)",
+    "save": "boilerplate save --bundle $(pwd)",
+    "delete": "boilerplate delete --bundle $npm_package_name",
+    "postinstall": "boilerplate install --bundle $npm_package_name && npm run upgrade",
+    "uninstall": "boilerplate uninstall --bundle $npm_package_name",
+    "upgrade": "boilerplate migrate up --bundle $npm_package_name",
+    "downgrade": "boilerplate migrate down --bundle $npm_package_name"
+  },
+  "author": "Peter C. Romano <pete@vitruvian.tech> (http://github.com/VitruvianTech)",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "strapi-sdk-javascript": "^0.3.1"
+  }
+}
