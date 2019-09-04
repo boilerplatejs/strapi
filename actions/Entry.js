@@ -1,18 +1,18 @@
+import _ from 'lodash';
+
 const namespace = '@boilerplatejs/strapi/Entry';
 
+const getDataType = () => ({
+  error: null,
+  content: null,
+  count: 0,
+  list: []
+});
+
 const data = {
-  posts: {
-    error: null,
-    content: null,
-    count: 0,
-    list: []
-  },
-  collections: {
-    error: null,
-    content: null,
-    count: 0,
-    list: []
-  }
+  posts: getDataType(),
+  collections: getDataType(),
+  content: null
 };
 
 const stringifyParams = params => Object.keys(params).map(key => key + '=' + params[key]).join('&');
@@ -35,30 +35,42 @@ export const count = (type) => call('count', type);
 export default (state = data, action = {}) => {
   switch (action.type) {
     case `${namespace}/posts/LOAD_SUCCESS`:
-      state.posts.content = action.result;
+      state.content = state.posts.content = action.result;
+      break;
     case `${namespace}/posts/LIST_SUCCESS`:
-      state.posts.list = state.posts.list.concat(action.result);
+      state.posts.list = _.unionBy(state.posts.list, action.result, post => post.id);
+      break;
     case `${namespace}/posts/COUNT_SUCCESS`:
       state.posts.count = action.result;
+      break;
     case `${namespace}/posts/LOAD_ERROR`:
       state.posts.error = new Error();
+      break;
     case `${namespace}/posts/LIST_ERROR`:
       state.posts.error = new Error();
+      break;
     case `${namespace}/posts/COUNT_ERROR`:
       state.posts.error = new Error();
+      break;
     case `${namespace}/collections/LOAD_SUCCESS`:
-      state.collections.content = action.result;
+      state.content = state.collections.content = action.result;
+      break;
     case `${namespace}/collections/LIST_SUCCESS`:
-      state.collections.list = state.collections.list.concat(action.result);
+      state.collections.list = _.unionBy(state.collections.list, action.result, collection => collection.id);
+      break;
     case `${namespace}/collections/COUNT_SUCCESS`:
       state.collections.count = action.result;
+      break;
     case `${namespace}/collections/LOAD_ERROR`:
       state.collections.error = new Error();
+      break;
     case `${namespace}/collections/LIST_ERROR`:
       state.collections.error = new Error();
+      break;
     case `${namespace}/collections/COUNT_ERROR`:
       state.collections.error = new Error();
-    default:
-      return state;
+      break;
   }
+
+  return state;
 };
