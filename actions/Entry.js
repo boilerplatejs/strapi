@@ -1,145 +1,63 @@
-const LOAD = '@boilerplatejs/contentful/Entry/LOAD';
-const LOAD_SUCCESS = '@boilerplatejs/contentful/Entry/LOAD_SUCCESS';
-const LOAD_FAIL = '@boilerplatejs/contentful/Entry/LOAD_FAIL';
-const LIST = '@boilerplatejs/contentful/Entry/LIST';
-const LIST_SUCCESS = '@boilerplatejs/contentful/Entry/LIST_SUCCESS';
-const LIST_FAIL = '@boilerplatejs/contentful/Entry/LIST_FAIL';
-const POST = '@boilerplatejs/contentful/Entry/POST';
-const POST_SUCCESS = '@boilerplatejs/contentful/Entry/POST_SUCCESS';
-const POST_FAIL = '@boilerplatejs/contentful/Entry/POST_FAIL';
-const COLLECTION = '@boilerplatejs/contentful/Entry/COLLECTION';
-const COLLECTION_SUCCESS = '@boilerplatejs/contentful/Entry/COLLECTION_SUCCESS';
-const COLLECTION_FAIL = '@boilerplatejs/contentful/Entry/COLLECTION_FAIL';
+const namespace = '@boilerplatejs/strapi/Entry';
 
-const initialState = {
-  loaded: false,
-  post: {},
-  collection: {},
-  data: {}
+const data = {
+  posts: {
+    error: null,
+    content: null,
+    count: 0,
+    list: []
+  },
+  collections: {
+    error: null,
+    content: null,
+    count: 0,
+    list: []
+  }
 };
 
-export function load(id) {
+const stringifyParams = params => Object.keys(params).map(key => key + '=' + params[key]).join('&');
+
+const call = (service, type, params = {}) => {
+  const { id = '' } = params;
+  service = service.toUpperCase();
+  delete params.id;
+
   return {
-    types: [LOAD, LOAD_SUCCESS, LOAD_FAIL],
-    promise: (client) => client.get(`/@boilerplatejs/contentful/Entry/load/${id}`)
+    types: [`${namespace}/${type}/${service}`, `${namespace}/${type}/${service}_SUCCESS`, `${namespace}/${type}/${service}_ERROR`],
+    promise: client => client.get(`/@boilerplatejs/strapi/Entry/${service.toLowerCase()}/${type}${service === 'load' && id ? `/${id}` : ''}?${stringifyParams(params)}`)
   };
 }
 
-export function list(type) {
-  return {
-    types: [LIST, LIST_SUCCESS, LIST_FAIL],
-    promise: (client) => client.get(`/@boilerplatejs/contentful/Entry/list/${type}`)
-  };
-}
+export const load = (type, params) => call('load', type, params);
+export const list = (type, params) => call('list', type, params);
+export const count = (type) => call('count', type);
 
-export function post(id) {
-  return {
-    types: [POST, POST_SUCCESS, POST_FAIL],
-    promise: (client) => client.get(`/@boilerplatejs/contentful/Entry/post/${id}`)
-  };
-}
-
-export function posts(collection) {
-  return {
-    types: [COLLECTION, COLLECTION_SUCCESS, COLLECTION_FAIL],
-    promise: (client) => client.get(collection ? `/@boilerplatejs/contentful/Entry/posts/${collection}` : `/@boilerplatejs/contentful/Entry/posts`)
-  };
-}
-
-export default (state = initialState, action = {}) => {
+export default (state = data, action = {}) => {
   switch (action.type) {
-    case LOAD:
-      return {
-        ...state,
-        loading: true
-      };
-    case LOAD_SUCCESS:
-      return {
-        ...state,
-        loading: false,
-        loaded: true,
-        data: action.result,
-        error: null
-      };
-    case LOAD_FAIL:
-      return {
-        ...state,
-        loading: false,
-        loaded: false,
-        data: null,
-        error: action.error
-      };
-
-    case POST:
-      return {
-        ...state,
-        loading: true
-      };
-    case POST_SUCCESS:
-      return {
-        ...state,
-        loading: false,
-        loaded: true,
-        post: action.result,
-        data: action.result,
-        error: null
-      };
-    case POST_FAIL:
-      return {
-        ...state,
-        loading: false,
-        loaded: false,
-        post: null,
-        data: null,
-        error: action.error
-      };
-
-  case COLLECTION:
-    return {
-      ...state,
-      loading: true
-    };
-  case COLLECTION_SUCCESS:
-    return {
-      ...state,
-      loading: false,
-      loaded: true,
-      collection: action.result,
-      data: action.result,
-      error: null
-    };
-  case COLLECTION_FAIL:
-    return {
-      ...state,
-      loading: false,
-      loaded: false,
-      collection: null,
-      data: null,
-      error: action.error
-    };
-
-    case LIST:
-      return {
-        ...state,
-        loading: true
-      };
-    case LIST_SUCCESS:
-      return {
-        ...state,
-        loading: false,
-        loaded: true,
-        data: action.result,
-        error: null
-      };
-    case LIST_FAIL:
-      return {
-        ...state,
-        loading: false,
-        loaded: false,
-        data: null,
-        error: action.error
-      };
-
+    case `${namespace}/posts/LOAD_SUCCESS`:
+      state.posts.content = action.result;
+    case `${namespace}/posts/LIST_SUCCESS`:
+      state.posts.list = state.posts.list.concat(action.result);
+    case `${namespace}/posts/COUNT_SUCCESS`:
+      state.posts.count = action.result;
+    case `${namespace}/posts/LOAD_ERROR`:
+      state.posts.error = new Error();
+    case `${namespace}/posts/LIST_ERROR`:
+      state.posts.error = new Error();
+    case `${namespace}/posts/COUNT_ERROR`:
+      state.posts.error = new Error();
+    case `${namespace}/collections/LOAD_SUCCESS`:
+      state.collections.content = action.result;
+    case `${namespace}/collections/LIST_SUCCESS`:
+      state.collections.list = state.collections.list.concat(action.result);
+    case `${namespace}/collections/COUNT_SUCCESS`:
+      state.collections.count = action.result;
+    case `${namespace}/collections/LOAD_ERROR`:
+      state.collections.error = new Error();
+    case `${namespace}/collections/LIST_ERROR`:
+      state.collections.error = new Error();
+    case `${namespace}/collections/COUNT_ERROR`:
+      state.collections.error = new Error();
     default:
       return state;
   }
