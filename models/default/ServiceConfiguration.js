@@ -19,6 +19,12 @@ export default class extends Model {
      */
     host = DataTypes.STRING;
 
+    cache = {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    };
+
     /**
      * Descriptors
      *

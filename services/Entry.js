@@ -1,21 +1,26 @@
 import Strapi from 'strapi-sdk-javascript';
 
+const CONFIG_SERVICE = '/@boilerplatejs/core/Config/service?bundle=@boilerplatejs/strapi';
 const RE_CACHE_KEY = /^.*Entry\/(.*)$/;
 
 let cache = {};
 let instance;
 
-const getClient = async (req) => (instance = instance || new Strapi((await req.service.get(`/@boilerplatejs/core/Config/service?bundle=@boilerplatejs/strapi`)).host));
+const getClient = async (req) => (instance = instance || new Strapi((await req.service.get(CONFIG_SERVICE)).host));
 
-const getEntry = async (req, params) => {
-    const type = params[0], id = params[1], key = req.url.replace(RE_CACHE_KEY, '$1');
-    return (cache[key] = cache[key] || await (await getClient(req))[id ? 'getEntry' : 'getEntries'](type, id || req.query));
+const getData = async (req, call) => {
+    const key = req.url.replace(RE_CACHE_KEY, '$1');
+    const useCache = (await req.service.get(CONFIG_SERVICE)).cache;
+    const data = await (useCache && cache[key] || call());
+    return useCache ? (cache[key] = cache[key] || data) : data;
 };
 
-export const count = async (req, params) => {
-    const type = params[0], key = req.url.replace(RE_CACHE_KEY, '$1');
-    return (cache[key] = cache[key] || await (await getClient(req)).getEntryCount(type, req.query));
-};
+const getEntry = async (req, params) => await getData(req, async () => {
+    const id = params[1];
+    return await (await getClient(req))[id ? 'getEntry' : 'getEntries'](params[0], id || req.query);
+});
+
+export const count = async (req, params) => await getData(req, async () => await (await getClient(req)).getEntryCount(params[0], req.query));
 
 export const load = async (req, params) => {
     const entry = await getEntry(req, params);
